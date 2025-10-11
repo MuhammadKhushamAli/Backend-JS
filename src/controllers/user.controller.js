@@ -4,6 +4,27 @@ import { uploadToCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { promiseAsyncHandler } from "../utils/promiseAsyncHandler.js";
 
+
+async function generateAccesAndRefreshTokens(user) {
+    try {
+
+        const refreshToken = await user.generateRefreshToken();
+        const accessToken = await user.generateAccessToken();
+
+        if (!refreshToken || !accessToken) {
+            throw new ApiError(500, "DataBase donot Generate Tokens");
+        }
+
+        user.refreshToken = refreshToken;
+        await user.save({ validateBeforeSave: false });
+
+        return { refreshToken, accessToken };
+
+    } catch (error) {
+        throw new ApiError(500, "Error in Generating Tokens");
+    }
+}
+
 export const registerUser = promiseAsyncHandler(async (req, res) => {
 
     // Get data from front end
@@ -54,7 +75,87 @@ export const registerUser = promiseAsyncHandler(async (req, res) => {
 
     if (!enteredUser) throw new ApiError(500, "Could not create user");
 
-    res.status(201).json(
+    return res.status(201).json(
         new ApiResponse(201, "User created successfully", enteredUser)
     );
-})
+});
+
+export const loginUser = promiseAsyncHandler(async (req, res) => {
+    // Get data from front end
+    // Validate (username or email)
+    // Check if user exists
+    // Check for password match
+    // Generate access token and refresh token
+    // Send Cookie
+
+    const { userNameOrEmail, password } = req.body;
+
+    if (
+        [userNameOrEmail, password].some(input => !input || input?.trim() === "")
+    ) {
+        throw new ApiError(400, "All fields are required");
+    }
+
+    userNameOrEmail = userNameOrEmail.toLowerCase();
+    const user = await User.findOne({
+        $or: [{ userName: userNameOrEmail }, { email: userNameOrEmail }]
+    });
+
+    if (!user) throw new ApiError(404, "User Not Found");
+
+    if (
+        !(await user.isPasswordCorrect(password))
+    ) {
+        throw new ApiError(401, "Incorrect Password");
+    }
+
+    const { refreshToken, accessToken } = await generateAccesAndRefreshTokens(user);
+
+    const loggedInUser = await User.findOne(user._id).select("-password -refreshToken");
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res.status(200)
+    .cookie("refreshToken", refreshToken, options)
+    .cookie("accessToken", accessToken, options)
+    .json(
+        new ApiResponse(
+            200,
+            "Successfully LoggedIn",
+            {
+                user: loggedInUser,
+                refreshToken,
+                accessToken
+            }
+        )
+    )
+
+});
+
+export const logoutUser = promiseAsyncHandler(async (req, res) => {
+    req.User.findByIdAndUpdae(
+        req.user._id,
+        {
+            $unser: {
+                refreshToken: 1
+            }
+        },
+        {
+            new: true
+        }
+    )
+        const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res.status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(
+        new ApiResponse(200, "Successfully Logged Out")
+    );
+});

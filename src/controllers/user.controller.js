@@ -95,7 +95,7 @@ export const loginUser = promiseAsyncHandler(async (req, res) => {
     // Send Cookie
     try {
         const { userName, email, password } = req.body;
-        
+
         if (!userName && !email) {
             throw new ApiError(400, "All fields are required");
         }
@@ -206,5 +206,35 @@ export const refreshAccesstoken = promiseAsyncHandler(async (req, res) => {
     } catch (error) {
         throw new ApiError(500, `Error in Refreshing Tokens: ${error}`)
     }
-})
+});
 
+export const changePassword = promiseAsyncHandler(async (req, res) => {
+
+    const { oldPassword, changedPassword } = req.body;
+
+    if (
+        [oldPassword, changedPassword].some(field => !field || field?.trim() === "")
+    ) {
+        throw new ApiError(400, "All Fields Are Required");
+    }
+
+    const user = await User.findById(req.user?._id);
+
+
+    if (!user) throw new ApiError(500, "Error in getting User");
+
+    if (
+        !(await user.isPasswordCorrect(oldPassword))
+    ) {
+        throw new ApiError(401, "Incorrect Current Password");
+    }
+
+    user.password = changedPassword;
+    await user.save({ validateBeforeSave: false });
+
+    return res.status(200)
+        .json(
+            new ApiResponse(200, "Password Successfully Changed")
+        )
+
+});

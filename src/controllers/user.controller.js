@@ -1,6 +1,9 @@
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
-import { uploadToCloudinary } from "../utils/cloudinary.js";
+import {
+    uploadToCloudinary,
+    deleteImageCloudinary
+} from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { promiseAsyncHandler } from "../utils/promiseAsyncHandler.js";
 import jwt from "jsonwebtoken"
@@ -218,7 +221,7 @@ export const changePassword = promiseAsyncHandler(async (req, res) => {
         throw new ApiError(400, "All Fields Are Required");
     }
 
-    const user = await User.findById(req.user?._id);
+    const user = req.user;
 
 
     if (!user) throw new ApiError(500, "Error in getting User");
@@ -237,4 +240,113 @@ export const changePassword = promiseAsyncHandler(async (req, res) => {
             new ApiResponse(200, "Password Successfully Changed")
         )
 
+});
+
+export const getCurrentUser = promiseAsyncHandler(async (req, res) => {
+    return res.status(200)
+        .json(
+            new ApiResponse(200,
+                "User Seccessfully Returned",
+                req?.user
+            )
+        )
+});
+
+export const updateAccountDetails = promiseAsyncHandler(async (req, res) => {
+    const { fullName, email } = req.body;
+
+    if (!(fullName && email)) throw new ApiError(400, "All Fields Required");
+
+    const user = await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set: {
+                fullName,
+                email
+            }
+        },
+        {
+            new: true
+        }
+    ).select("-password -refreshToken");
+
+    return res.status(200)
+        .json(
+            new ApiResponse(
+                200,
+                "Full Name and Email is updated",
+                user
+            )
+        );
+});
+
+export const updateAvatar = promiseAsyncHandler(async (req, res) => {
+    const loclAvatarURL = req?.file?.path;
+
+    if (!loclAvatarURL) throw new ApiError(400, "Avatar Not Found");
+
+    if (
+        !(await deleteImageCloudinary(req?.user?.avatar))
+    ) throw new ApiError(500, "Unable to Delete Previous Avatar");
+
+    const avatarURL = await uploadToCloudinary(loclAvatarURL);
+
+    if (!avatarURL) throw new ApiError(500, "Unable to Upload Avatar");
+
+    const user = await User.findByIdAndUpdate(
+        req?.user?._id,
+        {
+            $set: {
+                avatar: avatarURL
+            }
+        },
+        {
+            new: true
+        }
+    ).select("-password -refreshToken");
+
+    return res.status(200)
+        .json(
+            new ApiResponse(
+                200,
+                "Avatar Updated Successfully",
+                user
+            )
+        )
+});
+
+export const updateCoverImage = promiseAsyncHandler(async (req, res) => {
+    const localCoverImageURl = req?.file?.path;
+
+    if (!localCoverImageURl) throw new ApiError(400, "Cover Image Not Found");
+
+    if (
+        !(await deleteImageCloudinary(req?.user?.coverImage))
+    ) throw new ApiError(500, "Unable to Delete Previous Cover Image");
+
+
+    const coverImage = await uploadToCloudinary(localCoverImageURl);
+
+    if (!coverImage) throw new ApiError(500, "Unable to Upload Cover Image");
+
+    const user = await User.findByIdAndUpdate(
+        req?.user?._id,
+        {
+            $set: {
+                coverImage
+            }
+        },
+        {
+            new: true
+        }
+    ).select("-password -refreshToken");
+
+    return res.status(200)
+        .json(
+            new ApiResponse(
+                200,
+                "Successfully Update Cover Image",
+                user
+            )
+        )
 });

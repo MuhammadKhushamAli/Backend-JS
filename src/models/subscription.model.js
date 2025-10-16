@@ -13,7 +13,7 @@ const subscriptionSchema = new mongoose.Schema({
     }
 },
 {
-    timeStamps: true
+    timestamps: true
 });
 
 export const subscription = mongoose.model("Subscription", subscriptionSchema);

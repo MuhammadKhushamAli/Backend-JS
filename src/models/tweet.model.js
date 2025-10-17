@@ -5,9 +5,10 @@ const tweetSchema = mongoose.Schema(
         owner: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
-            required: true
+            required: true,
+            index: true
         },
-        constent: {
+        content: {
             type: String,
             required: true
         }

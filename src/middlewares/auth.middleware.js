@@ -20,7 +20,6 @@ export const verifyJWT = promiseAsyncHandler(async (req, _, next) => {
         }
     
         req.user = user;
-    
         next();
     } catch (error) {
         throw new ApiError(500, `Error in Auth MiddleWare: ${error}`)

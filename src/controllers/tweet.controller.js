@@ -40,7 +40,37 @@ export const getUserTweets = promiseAsyncHandler(async (req, res) => {
     );
     if (!user) throw new ApiError(404, "User not found");
 
-    const tweets = await Tweet.find({ owner: user?._id }).sort({ createdAt: -1 }).lean();
+    const tweets = await Tweet.aggregate([
+        {
+            $match: {
+                owner: new mongoose.Types.ObjectId(user?._id)
+            }
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner",
+                pipeline: [
+                    {
+                        $project: {
+                            fullName: 1,
+                            userName: 1,
+                            avatar: 1
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            $addFields: {
+                owner: {
+                    $first: "$owner"
+                }
+            }
+        }
+    ]);
 
     if (!tweets) throw new ApiError(500, "Unable to fetch tweets");
 
@@ -58,7 +88,7 @@ export const updateTweet = promiseAsyncHandler(async (req, res) => {
     const { tweetId, content } = req?.body;
 
     if (!tweetId) throw new ApiError(400, "Tweet ID not Found");
-    if (!mongoose.Types.ObjectId.isValid(tweetId)) throw new ApiError(400, "Invalid Tweet ID");
+    if (!mongoose.isValidObjectId(tweetId)) throw new ApiError(400, "Invalid Tweet ID");
     if (!(content.trim())) throw new ApiError(400, "Tweet content is required");
 
     const tweet = await Tweet.findById(tweetId);
@@ -96,7 +126,7 @@ export const updateTweet = promiseAsyncHandler(async (req, res) => {
 export const deleteTweet = promiseAsyncHandler(async (req, res) => {
     const { tweetId } = req?.body;
     if (!(tweetId?.trim())) throw new ApiError(400, "Tweet ID not Found");
-    if (!(mongoose.Types.ObjectId.isValid(tweetId))) throw new ApiError(400, "Invalid Tweet ID");
+    if (!(mongoose.isValidObjectId(tweetId))) throw new ApiError(400, "Invalid Tweet ID");
 
 
     const isDeleted = await Tweet.findOneAndDelete(

@@ -25,10 +25,12 @@ app.use(cookieParser());
 
 
 import userRoute from "./routes/user.route.js";
-import tweetRoute from "./routes/tweet.router.js";
+import tweetRoute from "./routes/tweet.route.js";
+import videoRoute from "./routes/video.route.js";
 
 // Router Decleration
 app.use("/api/v1/users", userRoute);
 app.use("/api/v1/tweets", tweetRoute);
+app.use("/api/v1/videos", videoRoute);
 
 export default app;

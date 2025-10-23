@@ -1,15 +1,18 @@
-import { ApiError } from "../utils/ApiError";
-import { ApiResponse } from "../utils/ApiResponse";
-import { promiseAsyncHandler } from "../utils/promiseAsyncHandler";
-import { Video } from "../models/video.models";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { promiseAsyncHandler } from "../utils/promiseAsyncHandler.js";
+import { Video } from "../models/video.model.js";
 import mongoose from "mongoose";
-import { User } from "../models/user.models";
+import { User } from "../models/user.model.js";
+import { uploadToCloudinary } from "../utils/cloudinary.js";
 
 export const getAllVideos = promiseAsyncHandler(async (req, res) => {
     let { page = 1, limit = 10, query, sortBy, sortType, userName } = req?.query;
 
     page = parseInt(page, 10);
     limit = parseInt(limit, 10);
+    query = query?.trim() || "";
+
     if (query?.length > 100) throw new ApiError(400, "Query is too long");
     if (!userName) throw new ApiError(400, "UserName Must be Required");
     if (page < 0) throw new ApiError(400, "Page must be greater than or equal to 0");
@@ -27,13 +30,12 @@ export const getAllVideos = promiseAsyncHandler(async (req, res) => {
     if (actorUser?._id.equals(user?._id)) {
         isOnlyPublicVideos = false;
     }
-
-    const videoAggregate = Video.aggregate([
+    const videoAggregate = await Video.aggregate([
         {
             $match: {
                 owner: new mongoose.Types.ObjectId(user?._id),
                 title: {
-                    $regex: query?.trim() || "",
+                    $regex: query?.trim(),
                     $options: "i"
                 },
                 ...(isOnlyPublicVideos && { isPublished: true })
@@ -69,22 +71,23 @@ export const getAllVideos = promiseAsyncHandler(async (req, res) => {
             }
         }
     ]);
+
     if (!videoAggregate) throw new ApiError(500, "Aggregation failed");
 
-    const options = {
-        page,
-        limit
-    };
+    // const options = {
+    //     page,
+    //     limit
+    // };
 
-    const paginatedVideos = await Video.aggregatePaginate(videoAggregate, options);
-    if (!paginatedVideos) throw new ApiError(500, "Unable to fetch videos");
+    // const paginatedVideos = await Video.aggregatePaginate(videoAggregate, options);
+    // if (!paginatedVideos) throw new ApiError(500, "Unable to fetch videos");
 
     return res.status(200)
         .json(
             new ApiResponse(
                 200,
                 "Videos fetched successfully",
-                paginatedVideos
+                videoAggregate
             )
         )
 });
@@ -129,6 +132,15 @@ export const getVideoById = promiseAsyncHandler(async (req, res) => {
                                 $size: "$subscribers"
                             },
                         }
+                    },
+                    {
+                        $project: {
+                            fullName: 1,
+                            userName: 1,
+                            avatar: 1,
+                            subscribers: 1,
+                            isSubscribed: 1
+                        }
                     }
                 ]
             }
@@ -170,4 +182,44 @@ export const getVideoById = promiseAsyncHandler(async (req, res) => {
                 video[0]
             )
         )
+});
+
+export const publishVideo = promiseAsyncHandler(async (req, res) => {
+    const { title, description } = req?.body;
+
+    if (
+        [title, description].some(field => !field || field?.trim() === "")
+    ) {
+        throw new ApiError(400, "Title and Description are required to publish the video");
+    }
+
+    const videoLocalPath = req?.files?.video?.[0]?.path;
+    if (!videoLocalPath) throw new ApiError(400, "Video file is required");
+
+    const thumbnailLocalPath = req?.files?.thumbnail?.[0]?.path;
+    if (!thumbnailLocalPath) throw new ApiError(400, "Thumbnail file is required");
+
+    const videoCloudinary = await uploadToCloudinary(videoLocalPath);
+    if (!videoCloudinary) throw new ApiError(500, "Failed to upload video to cloud");
+    const thumbnailCloudinary = await uploadToCloudinary(thumbnailLocalPath);
+    if (!thumbnailCloudinary) throw new ApiError(500, "Failed to upload thumbnail to cloud");
+
+    const video = await Video.create({
+        title,
+        description,
+        videoFile: videoCloudinary?.url,
+        thumbnail: thumbnailCloudinary?.url,
+        duration: videoCloudinary?.duration,
+        owner: req?.user?._id
+    });
+    if (!video) throw new ApiError(500, "Problem in Uploading Video");
+
+    return res.status(200)
+        .json(
+            new ApiResponse(
+                200,
+                "Video Successfully Uploaded",
+                video
+            )
+        );
 });

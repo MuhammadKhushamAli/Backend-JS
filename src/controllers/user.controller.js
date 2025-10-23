@@ -64,17 +64,17 @@ export const registerUser = promiseAsyncHandler(async (req, res) => {
 
         if (!avatarLocalUrl) throw new ApiError(400, "Avatar is required");
 
-        const avatarUrl = await uploadToCloudinary(avatarLocalUrl);
-        const coverImageUrl = await uploadToCloudinary(coverImageLocalUrl);
+        const avatar = await uploadToCloudinary(avatarLocalUrl);
+        const coverImage = await uploadToCloudinary(coverImageLocalUrl);
 
-        if (!avatarUrl) throw new ApiError(500, "Could not upload avatar");
+        if (!avatar) throw new ApiError(500, "Could not upload avatar");
 
         const user = await User.create({
             userName: userName.toLowerCase(),
             email,
             fullName,
-            avatar: avatarUrl,
-            coverImage: coverImageUrl || "",
+            avatar: avatar?.url,
+            coverImage: coverImage?.url || "",
             password
         })
 
@@ -290,15 +290,15 @@ export const updateAvatar = promiseAsyncHandler(async (req, res) => {
         !(await deleteImageCloudinary(req?.user?.avatar))
     ) throw new ApiError(500, "Unable to Delete Previous Avatar");
 
-    const avatarURL = await uploadToCloudinary(loclAvatarURL);
+    const avatar = await uploadToCloudinary(loclAvatarURL);
 
-    if (!avatarURL) throw new ApiError(500, "Unable to Upload Avatar");
+    if (!avatar) throw new ApiError(500, "Unable to Upload Avatar");
 
     const user = await User.findByIdAndUpdate(
         req?.user?._id,
         {
             $set: {
-                avatar: avatarURL
+                avatar: avatar?.url
             }
         },
         {
@@ -334,7 +334,7 @@ export const updateCoverImage = promiseAsyncHandler(async (req, res) => {
         req?.user?._id,
         {
             $set: {
-                coverImage
+                coverImage: coverImage?.url
             }
         },
         {

@@ -2,9 +2,9 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { promiseAsyncHandler } from "../utils/promiseAsyncHandler.js";
 import { Video } from "../models/video.model.js";
-import mongoose from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 import { User } from "../models/user.model.js";
-import { uploadToCloudinary } from "../utils/cloudinary.js";
+import { deleteImageCloudinary, uploadToCloudinary } from "../utils/cloudinary.js";
 
 export const getAllVideos = promiseAsyncHandler(async (req, res) => {
     let { page = 1, limit = 10, query, sortBy, sortType, userName } = req?.query;
@@ -222,4 +222,113 @@ export const publishVideo = promiseAsyncHandler(async (req, res) => {
                 video
             )
         );
+});
+
+export const updateVideo = promiseAsyncHandler(async (req, res) => {
+    const { videoId } = req?.params;
+
+    if (videoId) throw new ApiError(400, "Video Id Required");
+    if (isValidObjectId(videoId)) throw new ApiError(400, "Invalid Video Id");
+
+    const { title, description } = req?.body;
+
+    const thumbnailLocalPath = req?.file?.path;
+
+    if (title || description || thumbnailLocalPath) throw new ApiError(400, "Any one thing from title description or thumbnail must required");
+
+    const video = await Video.findById(videoId);
+    if (!video) throw new ApiError(404, "No Video Found against this ID");
+
+    if (!(video.owner.equals(req?.user._id))) throw new ApiError(401, "You are Unauthorize to Edit this Video");
+
+    let thumbnail = undefined;
+    if (thumbnailLocalPath) {
+        await deleteImageCloudinary(video?.thumbnail);
+        thumbnail = await uploadToCloudinary(thumbnailLocalPath);
+    }
+
+    let updatedVideo = undefined;
+    if (title || description) {
+        title = title?.trim();
+        description = description?.trim();
+        updatedVideo = await Video.findByIdAndUpdate(
+            videoId,
+            {
+                ...(title && { title }),
+                ...(description && { description }),
+            },
+            {
+                new: true
+            }
+        )
+    }
+
+    res.status(200)
+        .json(
+            new ApiResponse(
+                200,
+                "The Video is Successfully Updated",
+                updateVideo
+            )
+        )
+
+});
+
+export const deleteVideo = promiseAsyncHandler(async (req, res) => {
+    const { videoId } = req?.params;
+    videoId = videoId?.trim();
+    if (!videoId) throw new ApiError(400, "Video Id not Found");
+    if (!isValidObjectId(videoId)) throw new ApiError(400, "Invalid Video Id");
+
+    const deletedVideo = await Video.findOneAndDelete(
+        {
+            $and: [
+                { _id: videoId },
+                { owner: req?.user?._id }
+            ]
+        }
+    );
+
+    if (!deletedVideo) throw new ApiError(500, "Unable to Delete Video");
+
+    res.status(200)
+        .json(
+            new ApiResponse(
+                200,
+                "Video is Successfully Deleted"
+            )
+        );
+});
+
+export const togglePublishStatus = promiseAsyncHandler(async (req, res) => {
+    const { videoId } = req?.params;
+
+    videoId = videoId?.trim();
+    if (!videoId) throw new ApiError(400, "Video Id not Found");
+    if (!isValidObjectId(videoId)) throw new ApiError(400, "Invalid Video Id");
+
+    const video = await findOneAndUpdate(
+        {
+            $and: [
+                { _id: videoId },
+                { owner: req?.user?._id }
+            ]
+        },
+        {
+            $set: {
+                isPublished: !isPublished
+            }
+        },
+        {
+            new: true
+        }
+    );
+    if( !video ) throw new ApiError(500, "Unable to Update Video");
+
+    res.status(200)
+    .json(
+        200,
+        "Video Successfully Toggled",
+        video
+    );
 });

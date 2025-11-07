@@ -165,8 +165,13 @@ export const getVideoById = promiseAsyncHandler(async (req, res) => {
 
     if (!(video.length)) throw new ApiError(404, "Video not found");
 
-    req?.user?.watchHistory?.push(videoId);
-    await req?.user?.save();
+    await User.findByIdAndUpdate(
+        req?.user?._id,
+        {
+            $push:{watchHistory: videoId}
+        }
+    );
+
     await Video.findByIdAndUpdate(
         videoId,
         {

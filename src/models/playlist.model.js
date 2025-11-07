@@ -18,7 +18,6 @@ const playlistSchema = mongoose.Schema(
             {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: "Video",
-                required: true
             }
         ],
         owner: {
@@ -34,4 +33,4 @@ const playlistSchema = mongoose.Schema(
 
 commentSchema.plugin(mongooseAggregatePaginate)
 
-export const playlist = mongoose.model("Playlist", playlistSchema);
+export const Playlist = mongoose.model("Playlist", playlistSchema);

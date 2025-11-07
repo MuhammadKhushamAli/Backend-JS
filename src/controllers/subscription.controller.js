@@ -18,27 +18,27 @@ export const toggleSubscription = promiseAsyncHandler(async (req, res) => {
         subscriber: req?.user?._id,
         channel: channel?._id
     });
-    if( !subscription ) throw new ApiError(500, "Unable to Subscribe");
+    if (!subscription) throw new ApiError(500, "Unable to Subscribe");
 
     res.status(200)
-    .json(
-        new ApiResponse(
-            200,
-            "Channel Successfully Subscribed"
+        .json(
+            new ApiResponse(
+                200,
+                "Channel Successfully Subscribed"
+            )
         )
-    )
 });
 
 export const getChannelSubscribers = promiseAsyncHandler(async (req, res) => {
     const { channelId } = req?.params;
     channelId = channelId?.trim();
-    if( !channelId ) throw new ApiError(400, "Channel Id not Found");
-    if( !isValidObjectId(channelId) ) throw new ApiError(400, "Invalid Channel Id");
+    if (!channelId) throw new ApiError(400, "Channel Id not Found");
+    if (!isValidObjectId(channelId)) throw new ApiError(400, "Invalid Channel Id");
 
     const channel = await User.findById(channelId);
-    if( !channel ) throw new ApiError(404, "Channel not Found");
+    if (!channel) throw new ApiError(404, "Channel not Found");
 
-    if( !(channel?._id.equals(req?.user?._id)) ) throw new ApiError(401, "You are Unauthorize to get Channel Subscribers List"); 
+    if (!(channel?._id.equals(req?.user?._id))) throw new ApiError(401, "You are Unauthorize to get Channel Subscribers List");
 
     const subscribers = await Subscription.aggregate([
         {
@@ -70,35 +70,35 @@ export const getChannelSubscribers = promiseAsyncHandler(async (req, res) => {
         }
     ]);
 
-    if( !subscribers ) throw new ApiError(500, "Unable to Fetch Subscribers");
+    if (!subscribers) throw new ApiError(500, "Unable to Fetch Subscribers");
 
     res.status(200)
-    .json(
-        200,
-        "Subscribers Fetched Successfully",
-        subscribers
-    );
+        .json(
+            200,
+            "Subscribers Fetched Successfully",
+            subscribers
+        );
 });
 
 export const getSubscribedChannels = promiseAsyncHandler(async (req, res) => {
-    const { subscriberId  } = req?.params;
+    const { subscriberId } = req?.params;
     subscriberId = subscriberId?.trim();
-    if( !subscriberId ) throw new ApiError(400, "Subscriber Id not Found");
-    if( !isValidObjectId(subscriberId) ) throw new ApiError(400, "Invalid Subscriber Id");
+    if (!subscriberId) throw new ApiError(400, "Subscriber Id not Found");
+    if (!isValidObjectId(subscriberId)) throw new ApiError(400, "Invalid Subscriber Id");
 
     const user = await User.findById(subscriberId);
-    if( !user ) throw new ApiError(404, "User Not Found");
+    if (!user) throw new ApiError(404, "User Not Found");
 
-    if( !(user?._id.equals(req?.user?._id)) ) throw new ApiError(401, "You are Unauthorized to View Subscribed Channel List");
+    if (!(user?._id.equals(req?.user?._id))) throw new ApiError(401, "You are Unauthorized to View Subscribed Channel List");
 
     const subscribedChannels = await Subscription.aggregate([
         {
-            $match:{
+            $match: {
                 subscriber: new mongoose.Types.ObjectId(subscriberId)
             }
         },
         {
-            $lookup:{
+            $lookup: {
                 from: "users",
                 localField: "channel",
                 foreignField: "_id",
@@ -121,14 +121,14 @@ export const getSubscribedChannels = promiseAsyncHandler(async (req, res) => {
         }
     ]);
 
-    if( !subscribedChannels ) throw new ApiError(500, "Unable to Get Subscribed Channels");
+    if (!subscribedChannels) throw new ApiError(500, "Unable to Get Subscribed Channels");
 
     res.status(200)
-    .json(
-        new ApiResponse(
-            200,
-            "Subscribed Channels Successfully Fetched",
-            subscribedChannels
-        )
-    );
+        .json(
+            new ApiResponse(
+                200,
+                "Subscribed Channels Successfully Fetched",
+                subscribedChannels
+            )
+        );
 });

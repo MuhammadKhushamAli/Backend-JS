@@ -168,7 +168,7 @@ export const getVideoById = promiseAsyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req?.user?._id,
         {
-            $push:{watchHistory: videoId}
+            $push: { watchHistory: videoId }
         }
     );
 
@@ -328,12 +328,12 @@ export const togglePublishStatus = promiseAsyncHandler(async (req, res) => {
             new: true
         }
     );
-    if( !video ) throw new ApiError(500, "Unable to Update Video");
+    if (!video) throw new ApiError(500, "Unable to Update Video");
 
     res.status(200)
-    .json(
-        200,
-        "Video Successfully Toggled",
-        video
-    );
+        .json(
+            200,
+            "Video Successfully Toggled",
+            video
+        );
 });

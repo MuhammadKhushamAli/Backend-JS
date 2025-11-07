@@ -174,62 +174,62 @@ export const addVideoToPlayist = promiseAsyncHandler(async (req, res) => {
         }
     );
 
-    if( !newPlaylist ) throw new ApiError(500, "Unable to Update Playlist");
+    if (!newPlaylist) throw new ApiError(500, "Unable to Update Playlist");
 
     res.status(200)
-    .json(
-        new ApiResponse(
-            200,
-            "Video Succcessfully Added to Playlist",
-            newPlaylist
-        )
-    );
+        .json(
+            new ApiResponse(
+                200,
+                "Video Succcessfully Added to Playlist",
+                newPlaylist
+            )
+        );
 });
 
 export const removeVideoFromPlaylist = promiseAsyncHandler(async (req, res) => {
     const { playlistId, videoId } = req?.params;
     playlistId = playlistId?.trim();
     videoId = videoId?.trim();
-    if( !(playlistId && videoId) ) throw new ApiError(400, "Playlist ID and Video ID both are Required");
-    if( !(isValidObjectId(playlistId) && isValidObjectId(videoId)) ) throw new ApiError(400, "Invalid Playlist ID or Video ID");
+    if (!(playlistId && videoId)) throw new ApiError(400, "Playlist ID and Video ID both are Required");
+    if (!(isValidObjectId(playlistId) && isValidObjectId(videoId))) throw new ApiError(400, "Invalid Playlist ID or Video ID");
 
     const video = await Video.findById(videoId);
-    if( !video ) throw new ApiError(404, "Video not Found");
+    if (!video) throw new ApiError(404, "Video not Found");
 
     const playlist = await Playlist.findByIdAndUpdate(
         playlistId,
         {
-            $pull:{video: videoId}
+            $pull: { video: videoId }
         }
     );
-    if( !playlist ) throw new ApiError(500, "Unable to Remove Video From Playlist");
+    if (!playlist) throw new ApiError(500, "Unable to Remove Video From Playlist");
 
     res.status(200)
-    .json(
-        new ApiResponse(
-            200,
-            "Video Successfully Removed",
-            playlist
-        )
-    );
+        .json(
+            new ApiResponse(
+                200,
+                "Video Successfully Removed",
+                playlist
+            )
+        );
 });
 
 export const deletePlaylist = promiseAsyncHandler(async (req, res) => {
     const { playlistId } = req?.params;
     playlistId = playlistId?.trim();
-    if( !playlistId ) throw new ApiError(400, "Playlist Id is Required");
-    if ( !isValidObjectId(playlistId) ) throw new ApiError(400, "Playlist Id is Invalid");
+    if (!playlistId) throw new ApiError(400, "Playlist Id is Required");
+    if (!isValidObjectId(playlistId)) throw new ApiError(400, "Playlist Id is Invalid");
 
     const playlist = await Playlist.findByIdAndDelete(playlistId);
-    if( !playlist ) throw new ApiError(500, "Unable to Delete Playlist");
+    if (!playlist) throw new ApiError(500, "Unable to Delete Playlist");
 
     res.status(200)
-    .json(
-        new ApiResponse(
-            200,
-            "Playlist Successfully Deleted"
-        )
-    );
+        .json(
+            new ApiResponse(
+                200,
+                "Playlist Successfully Deleted"
+            )
+        );
 });
 
 export const updatePlaylist = promiseAsyncHandler(async (req, res) => {
@@ -238,27 +238,27 @@ export const updatePlaylist = promiseAsyncHandler(async (req, res) => {
     playlistId = playlistId?.trim();
     name = name?.trim();
     description = description?.trim();
-    if( !playlistId ) throw new ApiError(400, "Playlist ID is Required");
-    if( name || description ) throw new ApiError(400, "Name or Description must Required");
+    if (!playlistId) throw new ApiError(400, "Playlist ID is Required");
+    if (name || description) throw new ApiError(400, "Name or Description must Required");
 
     const playlist = await Playlist.findByIdAndUpdate(
         playlistId,
         {
-            ...(name && {name}),
-            ...(description && {description})
+            ...(name && { name }),
+            ...(description && { description })
         },
         {
             new: true
         }
     );
-    if( !playlist ) throw new ApiError(500, "Unable to Update Playlist");
+    if (!playlist) throw new ApiError(500, "Unable to Update Playlist");
 
     res.status(200)
-    .json(
-        new ApiError(
-            200,
-            "Playlist Successfully Updated",
-            playlist
+        .json(
+            new ApiError(
+                200,
+                "Playlist Successfully Updated",
+                playlist
+            )
         )
-    )
 });

@@ -9,76 +9,76 @@ import { Comment } from "../models/comment.model.js";
 export const toggleVideoLike = promiseAsyncHandler(async (req, res) => {
     const { videoId } = req?.params;
     videoId = videoId?.trim();
-    if( !videoId ) throw new ApiError(400, "Video ID Required");
-    if( !isValidObjectId(videoId) ) throw new ApiError(400, "Video ID is Invalid");
+    if (!videoId) throw new ApiError(400, "Video ID Required");
+    if (!isValidObjectId(videoId)) throw new ApiError(400, "Video ID is Invalid");
 
     const video = await Video.findById(videoId);
-    if( !video ) throw new ApiError(404, "Video not Found");
+    if (!video) throw new ApiError(404, "Video not Found");
 
     const like = await Like.create({
         video: videoId,
         likedBy: req?.user?._id
     });
-    if( !like ) throw new ApiError(500, "Unable to Like the Video");
+    if (!like) throw new ApiError(500, "Unable to Like the Video");
 
     res.status(200)
-    .json(
-        new ApiResponse(
-            200,
-            "Video is Liked Successfully",
-            like
-        )
-    );
+        .json(
+            new ApiResponse(
+                200,
+                "Video is Liked Successfully",
+                like
+            )
+        );
 });
 
 export const toggleCommentLike = promiseAsyncHandler(async (req, res) => {
     const { commentId } = req?.params;
     commentId = commentId?.trim();
-    if( !commentId ) throw new ApiError(400, "Comment ID Required");
-    if( !isValidObjectId(commentId) ) throw new ApiError(400, "Comment ID is Invalid");
+    if (!commentId) throw new ApiError(400, "Comment ID Required");
+    if (!isValidObjectId(commentId)) throw new ApiError(400, "Comment ID is Invalid");
 
     const comment = await Comment.findById(commentId);
-    if( !comment ) throw new ApiError(404, "Comment not Found");
+    if (!comment) throw new ApiError(404, "Comment not Found");
 
     const like = await Like.create({
         comment: commentId,
         likedBy: req?.user?._id
     });
-    if( !like ) throw new ApiError(500, "Unable to Like the Comment");
+    if (!like) throw new ApiError(500, "Unable to Like the Comment");
 
     res.status(200)
-    .json(
-        new ApiResponse(
-            200,
-            "Comment is Liked Successfully",
-            like
-        )
-    );
+        .json(
+            new ApiResponse(
+                200,
+                "Comment is Liked Successfully",
+                like
+            )
+        );
 });
 
 export const toggleTweetLike = promiseAsyncHandler(async (req, res) => {
     const { tweetId } = req?.params;
     tweetId = tweetId?.trim();
-    if( !tweetId ) throw new ApiError(400, "Tweet ID Required");
-    if( !isValidObjectId(tweetId) ) throw new ApiError(400, "Tweet ID is Invalid");
+    if (!tweetId) throw new ApiError(400, "Tweet ID Required");
+    if (!isValidObjectId(tweetId)) throw new ApiError(400, "Tweet ID is Invalid");
 
     const tweet = await Comment.findById(tweetId);
-    if( !tweet ) throw new ApiError(404, "Tweet not Found");
+    if (!tweet) throw new ApiError(404, "Tweet not Found");
 
     const like = await Like.create({
         tweet: tweetId,
         likedBy: req?.user?._id
     });
-    if( !like ) throw new ApiError(500, "Unable to Like the Tweet");
+    if (!like) throw new ApiError(500, "Unable to Like the Tweet");
 
     res.status(200)
-    .json(
-        new ApiResponse(
-            200,
-            "Tweet is Liked Successfully",
-            like
-        )
-    );
+        .json(
+            new ApiResponse(
+                200,
+                "Tweet is Liked Successfully",
+                like
+            )
+        );
 });
 
 export const getAllLikedVideos = promiseAsyncHandler(async (req, res) => {
@@ -137,14 +137,14 @@ export const getAllLikedVideos = promiseAsyncHandler(async (req, res) => {
             }
         }
     ]);
-    if( !videos ) throw new ApiError(500, "Unable to Fetch Liked Videos");
+    if (!videos) throw new ApiError(500, "Unable to Fetch Liked Videos");
 
     res.status(200)
-    .json(
-        new ApiResponse(
-            200,
-            "Liked Videos Fetched Successfully",
-            videos
+        .json(
+            new ApiResponse(
+                200,
+                "Liked Videos Fetched Successfully",
+                videos
+            )
         )
-    )
 });

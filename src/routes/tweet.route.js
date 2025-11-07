@@ -12,7 +12,7 @@ const router = Router();
 // Secure Route
 router.route("/tweet").post(verifyJWT, createTweet);
 router.route("/get-tweets/:userName").get(verifyJWT, getUserTweets);
-router.route("/update-tweet").patch(verifyJWT, updateTweet);
-router.route("/delete-tweet").delete(verifyJWT, deleteTweet);
+router.route("/update").patch(verifyJWT, updateTweet);
+router.route("/delete").delete(verifyJWT, deleteTweet);
 
 export default router;

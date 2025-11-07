@@ -75,7 +75,9 @@ export const getUserPlaylists = promiseAsyncHandler(async (req, res) => {
                     },
                     {
                         $addField: {
-                            $owner: "$first"
+                            owner: {
+                                $first: "$owner"
+                            }
                         }
                     }
                 ]
@@ -133,7 +135,9 @@ export const getPlaylistById = promiseAsyncHandler(async (req, res) => {
                     },
                     {
                         $addField: {
-                            $owner: "$first"
+                            owner: {
+                                $first: "$owner"
+                            }
                         }
                     }
                 ]

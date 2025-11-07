@@ -30,7 +30,7 @@ export const getAllVideos = promiseAsyncHandler(async (req, res) => {
     if (actorUser?._id.equals(user?._id)) {
         isOnlyPublicVideos = false;
     }
-    const videoAggregate = await Video.aggregate([
+    const videoAggregate = Video.aggregate([
         {
             $match: {
                 owner: new mongoose.Types.ObjectId(user?._id),
@@ -74,13 +74,13 @@ export const getAllVideos = promiseAsyncHandler(async (req, res) => {
 
     if (!videoAggregate) throw new ApiError(500, "Aggregation failed");
 
-    // const options = {
-    //     page,
-    //     limit
-    // };
+    const options = {
+        page,
+        limit
+    };
 
-    // const paginatedVideos = await Video.aggregatePaginate(videoAggregate, options);
-    // if (!paginatedVideos) throw new ApiError(500, "Unable to fetch videos");
+    const paginatedVideos = await Video.aggregatePaginate(videoAggregate, options);
+    if (!paginatedVideos) throw new ApiError(500, "Unable to fetch videos");
 
     return res.status(200)
         .json(

@@ -131,10 +131,8 @@ export const deleteTweet = promiseAsyncHandler(async (req, res) => {
 
     const isDeleted = await Tweet.findOneAndDelete(
         {
-            $and: [
-                { _id: tweetId },
-                { owner: req?.user?._id }
-            ]
+            _id: tweetId,
+            owner: req?.user?._id
         }
     );
     if (!isDeleted) throw new ApiError(500, "Unable to delete tweet");

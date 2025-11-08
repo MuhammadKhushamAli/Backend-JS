@@ -23,13 +23,7 @@ export const getAllVideos = promiseAsyncHandler(async (req, res) => {
     });
     if (!user) throw new ApiError(404, "User not found");
 
-    const actorUser = req?.user;
-    if (!actorUser) throw new ApiError(401, "Unauthorized Access");
-
-    let isOnlyPublicVideos = true;
-    if (actorUser?._id.equals(user?._id)) {
-        isOnlyPublicVideos = false;
-    }
+    
     const videoAggregate = Video.aggregate([
         {
             $match: {
@@ -38,7 +32,7 @@ export const getAllVideos = promiseAsyncHandler(async (req, res) => {
                     $regex: query?.trim(),
                     $options: "i"
                 },
-                ...(isOnlyPublicVideos && { isPublished: true })
+                isPublished: true
             },
         },
         {

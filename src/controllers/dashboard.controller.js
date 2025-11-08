@@ -10,12 +10,12 @@ export const getChannelStats = promiseAsyncHandler(async (req, res) => {
     if (!channelId) throw new ApiError(400, "Channel ID Must be Required");
     if (!isValidObjectId(channelId)) throw new ApiError(400, "Incorrect Channel ID");
 
-    if (!((req?.user?_id).equals(channelId))) throw new ApiError(401, "You are Unauthorized to View Dashboard");
+    if (!((req?.user?._id).equals(channelId))) throw new ApiError(401, "You are Unauthorized to View Dashboard");
 
     const dashboard = await User.aggregate([
         {
             $match: {
-                _id: new mongoose.Types.ObjectId(channelId);
+                _id: new mongoose.Types.ObjectId(channelId)
             }
         },
         {

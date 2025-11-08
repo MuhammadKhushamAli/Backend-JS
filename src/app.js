@@ -31,6 +31,7 @@ import subscriptionRoute from "./routes/subscription.router.js";
 import playlistRoute from "./routes/playlist.route.js";
 import likeRoute from "./routes/like.route.js";
 import commentRoute from "./routes/comment.route.js";
+import dashboardRoute from "./routes/dashboard.route.js";
 
 // Router Decleration
 app.use("/api/v1/users", userRoute);
@@ -40,5 +41,6 @@ app.use("/api/v1/subscriptions", subscriptionRoute);
 app.use("/api/v1/playlist", playlistRoute);
 app.use("/api/v1/like", likeRoute);
 app.use("/api/v1/comment", commentRoute);
+app.use("/api/v1/dashboard", dashboardRoute);
 
 export default app;

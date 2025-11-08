@@ -3,19 +3,13 @@ import { ApiError } from "../utils/ApiError";
 import { promiseAsyncHandler } from "../utils/promiseAsyncHandler";
 import { User } from "../models/user.model.js";
 import { ApiResponse } from "../utils/ApiResponse";
+import { Video } from "../models/video.model.js";
 
 export const getChannelStats = promiseAsyncHandler(async (req, res) => {
-    const { channelId } = req?.params;
-    channelId = channelId?.trim();
-    if (!channelId) throw new ApiError(400, "Channel ID Must be Required");
-    if (!isValidObjectId(channelId)) throw new ApiError(400, "Incorrect Channel ID");
-
-    if (!((req?.user?._id).equals(channelId))) throw new ApiError(401, "You are Unauthorized to View Dashboard");
-
     const dashboard = await User.aggregate([
         {
             $match: {
-                _id: new mongoose.Types.ObjectId(channelId)
+                _id: new mongoose.Types.ObjectId(req?.user?._id)
             }
         },
         {
@@ -213,6 +207,22 @@ export const getChannelStats = promiseAsyncHandler(async (req, res) => {
             200,
             "Dashboard Fetched Successfully",
             dashboard[0]
+        )
+    );
+});
+
+export const getChannelVideo = promiseAsyncHandler(async (req, res) => {
+    const videos = await Video.find({
+        owner: req?.user?._id
+    });
+    if(!videos) throw new ApiError(404, "No Video Found");
+
+    res.status(200)
+    .json(
+        new ApiResponse(
+            200,
+            "Videos Successfully Fetched",
+            videos[0]
         )
     );
 });

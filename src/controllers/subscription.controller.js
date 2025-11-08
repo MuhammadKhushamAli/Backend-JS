@@ -76,7 +76,7 @@ export const getChannelSubscribers = promiseAsyncHandler(async (req, res) => {
         .json(
             200,
             "Subscribers Fetched Successfully",
-            subscribers
+            subscribers[0]
         );
 });
 
@@ -128,7 +128,7 @@ export const getSubscribedChannels = promiseAsyncHandler(async (req, res) => {
             new ApiResponse(
                 200,
                 "Subscribed Channels Successfully Fetched",
-                subscribedChannels
+                subscribedChannels[0]
             )
         );
 });

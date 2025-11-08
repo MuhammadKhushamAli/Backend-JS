@@ -79,7 +79,7 @@ export const getUserTweets = promiseAsyncHandler(async (req, res) => {
             new ApiResponse(
                 200,
                 "Tweets fetched successfully",
-                tweets
+                tweets[0]
             )
         );
 });

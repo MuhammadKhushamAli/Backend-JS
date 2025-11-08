@@ -92,7 +92,7 @@ export const getUserPlaylists = promiseAsyncHandler(async (req, res) => {
             new ApiResponse(
                 200,
                 "Playlist Fetched Successfully",
-                playlist
+                playlist[0]
             )
         );
 });
@@ -151,7 +151,7 @@ export const getPlaylistById = promiseAsyncHandler(async (req, res) => {
             new ApiError(
                 200,
                 "Playlist Successfully Fetched",
-                playlist
+                playlist[0]
             )
         );
 });

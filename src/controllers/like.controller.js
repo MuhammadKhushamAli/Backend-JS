@@ -144,7 +144,7 @@ export const getAllLikedVideos = promiseAsyncHandler(async (req, res) => {
             new ApiResponse(
                 200,
                 "Liked Videos Fetched Successfully",
-                videos
+                videos[0]
             )
         )
 });

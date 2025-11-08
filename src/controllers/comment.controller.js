@@ -76,7 +76,7 @@ export const getVideoComments = promiseAsyncHandler(async (req, res) => {
             new ApiResponse(
                 200,
                 "Comments Successfully Fetched",
-                comments
+                comments[0]
             )
         );
 });

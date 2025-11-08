@@ -87,7 +87,7 @@ export const getAllVideos = promiseAsyncHandler(async (req, res) => {
             new ApiResponse(
                 200,
                 "Videos fetched successfully",
-                videoAggregate
+                videoAggregate[0]
             )
         )
 });
